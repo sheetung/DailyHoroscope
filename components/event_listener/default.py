@@ -6,6 +6,7 @@ import asyncio
 import aiohttp
 import os
 import pytz
+import base64
 from datetime import datetime, date
 from langbot_plugin.api.definition.components.common.event_listener import EventListener
 from langbot_plugin.api.entities import events, context
@@ -22,6 +23,7 @@ class DefaultEventListener(EventListener):
         await super().initialize()
         
         self.time_zone = self.plugin.get_config().get('time_zone', "Asia/Shanghai")
+        self.api_token = self.plugin.get_config().get('api_token', '')
         @self.handler(events.PersonMessageReceived)
         @self.handler(events.GroupMessageReceived)
         async def handler(event_context: context.EventContext):
@@ -44,20 +46,20 @@ class DefaultEventListener(EventListener):
             if await self.has_requested_today(user_id):
                 await event_context.reply(
                     platform_message.MessageChain([
-                        platform_message.Plain(text="您今天已经查询过运势了，请明天再来！")
+                        platform_message.Plain(text="您今天已经查询过运势了，请明天再来吧！")
                     ])
                 )
                 event_context.prevent_default()
                 return
             
             try:
-                # 异步请求每日运势API
-                horoscope_url = await self.fetch_horoscope_image()
+                # 异步请求每日运势API，获取base64格式的图片
+                horoscope_base64 = await self.fetch_horoscope_image()
                 
                 # 发送图片
                 await event_context.reply(
                     platform_message.MessageChain([
-                        platform_message.Image(url=horoscope_url)
+                        platform_message.Image(base64=horoscope_base64)
                     ])
                 )
                 
@@ -74,10 +76,21 @@ class DefaultEventListener(EventListener):
             event_context.prevent_default()
     
     async def fetch_horoscope_image(self):
-        """异步请求运势图片（API直接返回图片数据）"""
-        url = "https://www.hhlqilongzhu.cn/api/tu_yunshi.php"
+        """异步请求运势图片并转换为base64格式"""
+        url = "https://api.092399.xyz/api/yunshi/yunshi.php?type=today&token=" + self.api_token
 
-        return url
+        async with aiohttp.ClientSession() as session:
+            async with session.get(url, ssl=False) as response:
+                # 检查是否为403错误（token未配置或错误）
+                if response.status == 403:
+                    raise Exception("API Token未配置或填入错误，请检查插件配置中的api_token设置或者联系插件作者获取正确的Token")
+
+                response.raise_for_status()
+                # 读取图片数据
+                image_data = await response.read()
+                # 转换为base64
+                img_base64 = base64.b64encode(image_data).decode('utf-8')
+                return img_base64
     
     async def has_requested_today(self, user_id):
         """检查用户今天是否已经请求过"""
