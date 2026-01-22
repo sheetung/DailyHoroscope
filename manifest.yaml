@@ -4,7 +4,7 @@ metadata:
   author: sheetung
   name: DailyHoroscope
   repository: 'https://github.com/sheetung/DailyHoroscope'
-  version: 1.0.5
+  version: 1.0.6
   description:
     en_US: Daily Horoscope for LangBot
     zh_Hans: '赛博 每日运势'

@@ -34,8 +34,8 @@ class DefaultEventListener(EventListener):
                 if isinstance(element, platform_message.Plain)
             ).strip()
             
-            # 只处理包含"运势"关键词的消息
-            if "运势" not in message:
+            # 只处理"运势"关键词的消息
+            if message != "运势":
                 return
             
             # 获取用户ID
