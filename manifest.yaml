@@ -4,7 +4,7 @@ metadata:
   author: sheetung
   name: DailyHoroscope
   repository: 'https://github.com/sheetung/DailyHoroscope'
-  version: 1.0.6
+  version: 1.0.11
   description:
     en_US: Daily Horoscope for LangBot
     zh_Hans: '赛博 每日运势'
@@ -25,9 +25,9 @@ spec:
       type: string
       label:
         en_US: 'api_token'
-        zh_Hans: 'api认证'
-      required: true
-      default: '为防止滥用，请联系插件作者获取'
+        zh_Hans: 'api认证[为防止滥用，每日限制10次请求，更多请求联系作者获取免费token]'
+      required: false
+      default: ''
   components:
     EventListener:
       fromDirs:

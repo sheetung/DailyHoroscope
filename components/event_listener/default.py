@@ -40,7 +40,6 @@ class DefaultEventListener(EventListener):
             
             # 获取用户ID
             user_id = str(event_context.event.sender_id)
-            launcher_type = event_context.event.launcher_type
             
             # 检查用户是否已经在今天请求过
             if await self.has_requested_today(user_id):
@@ -76,21 +75,28 @@ class DefaultEventListener(EventListener):
             event_context.prevent_default()
     
     async def fetch_horoscope_image(self):
-        """异步请求运势图片并转换为base64格式"""
-        url = "https://api.092399.xyz/api/yunshi/yunshi.php?type=today&token=" + self.api_token
+            """异步请求运势图片并转换为base64格式"""
+            # 1. 纯净的 URL，不再携带 Token 
+            url = "https://api.092399.xyz/api/yunshi/yunshi.php"
+            
+            # 2. 将 Token 放入请求头
+            headers = {
+                "X-Token": self.api_token
+            }
 
-        async with aiohttp.ClientSession() as session:
-            async with session.get(url, ssl=False) as response:
-                # 检查是否为403错误（token未配置或错误）
-                if response.status == 403:
-                    raise Exception("API Token未配置或填入错误，请检查插件配置中的api_token设置或者联系插件作者获取正确的Token")
+            async with aiohttp.ClientSession() as session:
+                # 3. 发起请求时带上 headers
+                async with session.get(url, headers=headers, ssl=False) as response:
+                    # 检查是否为 403 错误
+                    if response.status == 403:
+                        raise Exception("API Token无效或未配置，请检查插件配置中的api_token。")
 
-                response.raise_for_status()
-                # 读取图片数据
-                image_data = await response.read()
-                # 转换为base64
-                img_base64 = base64.b64encode(image_data).decode('utf-8')
-                return img_base64
+                    response.raise_for_status()
+                    # 读取图片数据
+                    image_data = await response.read()
+                    # 转换为 base64
+                    img_base64 = base64.b64encode(image_data).decode('utf-8')
+                    return img_base64
     
     async def has_requested_today(self, user_id):
         """检查用户今天是否已经请求过"""
