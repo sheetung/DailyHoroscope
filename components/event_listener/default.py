@@ -77,7 +77,7 @@ class DefaultEventListener(EventListener):
     async def fetch_horoscope_image(self):
             """异步请求运势图片并转换为base64格式"""
             # 1. 纯净的 URL，不再携带 Token 
-            url = "https://api.092399.xyz/api/yunshi/yunshi.php"
+            url = "https://api.092399.xyz/yunshi/yunshi.php"
             
             # 2. 将 Token 放入请求头
             headers = {
